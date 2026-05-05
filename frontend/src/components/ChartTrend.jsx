@@ -19,29 +19,52 @@ Chart.register(
   Legend
 );
 
-export default function ChartTrend() {
-  // temporary dummy data
-  const data = {
-    labels: ["Jan", "Feb", "Mar", "Apr"],
+export default function ChartTrend({ data }) {
+  if (!data || data.length === 0) {
+    return <p className="empty-state">No monthly data available</p>;
+  }
+
+  const labels = data.map(d => d.month);
+  const incomeData = data.map(d => parseFloat(d.income) || 0);
+  const expenseData = data.map(d => parseFloat(d.expense) || 0);
+
+  const chartData = {
+    labels,
     datasets: [
       {
         label: "Income",
-        data: [50000, 60000, 55000, 65000],
+        data: incomeData,
         borderColor: "#2ca02c",
+        backgroundColor: "#2ca02c",
         tension: 0.3,
       },
       {
         label: "Expense",
-        data: [30000, 35000, 32000, 40000],
+        data: expenseData,
         borderColor: "#d62728",
+        backgroundColor: "#d62728",
         tension: 0.3,
       },
     ],
   };
 
+  const options = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: "bottom",
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+      },
+    },
+  };
+
   return (
     <div>
-      <Line data={data} />
+      <Line data={chartData} options={options} />
     </div>
   );
 }
