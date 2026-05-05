@@ -33,6 +33,7 @@ body {
   height: 40px;
 }
 
+.nav-links a,
 .nav-links button {
   margin-left: 12px;
   padding: 8px 14px;
@@ -41,6 +42,11 @@ body {
   color: white;
   border-radius: 6px;
   cursor: pointer;
+  text-decoration: none;
+}
+
+.nav-links a:hover {
+  background: #ffffff55;
 }
 
 /* Footer */
