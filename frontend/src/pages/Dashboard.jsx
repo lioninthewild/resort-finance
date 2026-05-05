@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import ChartCategory from "../components/ChartCategory";
 import ChartTrend from "../components/ChartTrend";
+import { getSummary } from "../api/summary";
 
 export default function Dashboard() {
   const [summary, setSummary] = useState({
@@ -9,32 +10,23 @@ export default function Dashboard() {
     net: 0,
     categoryBreakdown: [],
   });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // This will run when backend is ready
   async function loadSummaryFromBackend() {
     try {
-      // TODO: replace with real backend summary endpoint
-      // For now using dummy fallback
-      const backendAvailable = false;
-
-      if (backendAvailable) {
-        // const res = await getSummary();
-        // setSummary(res);
-      } else {
-        // fallback dummy summary
-        setSummary({
-          totalIncome: 50000,
-          totalExpense: 25000,
-          net: 25000,
-          categoryBreakdown: [
-            { name: "Room", total: 30000 },
-            { name: "Food & Beverage", total: 15000 },
-            { name: "Utilities", total: 5000 },
-          ],
-        });
-      }
+      const res = await getSummary();
+      setSummary({
+        totalIncome: res.totalIncome || 0,
+        totalExpense: res.totalExpense || 0,
+        net: res.net || 0,
+        categoryBreakdown: res.categoryBreakdown || [],
+      });
     } catch (err) {
       console.error("Dashboard error:", err);
+      setError("Failed to load dashboard data");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -54,7 +46,7 @@ export default function Dashboard() {
         }}
       >
         <img
-          src="/logo.jpg"
+          src="/logo.jpeg"
           alt="logo"
           style={{ height: "50px", borderRadius: "6px" }}
         />

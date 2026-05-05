@@ -5,6 +5,11 @@ export async function getTransactions() {
   return res.data;
 }
 
+export async function getCategories() {
+  const res = await apiClient.get("/categories");
+  return res.data;
+}
+
 export async function addTransaction(formData) {
   const res = await apiClient.post("/transactions", formData, {
     headers: { "Content-Type": "multipart/form-data" },

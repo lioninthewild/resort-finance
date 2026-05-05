@@ -1,59 +1,41 @@
 import React, { useEffect, useState } from "react";
-// import {
-//   getCategories,
-//   getTransactions,
-//   addTransaction,
-//   deleteTransaction,
-// } from "../api/transactions"; // not used yet
-// Note: these imports are placeholders until backend is ready
+import {
+  getCategories,
+  getTransactions,
+  addTransaction,
+  deleteTransaction,
+} from "../api/transactions";
 
 export default function Transactions() {
   const [transactions, setTransactions] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [formData, setFormData] = useState({
+    date: new Date().toISOString().split("T")[0],
+    amount: "",
+    type: "income",
+    category_id: "",
+    payment_method: "",
+    description: "",
+  });
 
   async function loadFromBackend() {
     try {
-      const backendAvailable = false;
-
-      if (backendAvailable) {
-        /*
-        const cats = await getCategories();
-        const txs = await getTransactions();
-        setCategories(cats);
-        setTransactions(txs);
-        */
-      } else {
-        setCategories([
-          "Room",
-          "Food & Beverage",
-          "Salaries",
-          "Maintenance",
-          "TroutFish",
-          "localChicken",
-          "Utilities",
-        ]);
-
-        setTransactions([
-          {
-            id: 1,
-            date: "2025-01-01",
-            category: "Room",
-            type: "income",
-            amount: 5000,
-            receipt: true,
-          },
-          {
-            id: 2,
-            date: "2025-01-02",
-            category: "Salaries",
-            type: "expense",
-            amount: 12000,
-            receipt: false,
-          },
-        ]);
+      const [cats, txs] = await Promise.all([
+        getCategories(),
+        getTransactions(),
+      ]);
+      setCategories(cats);
+      setTransactions(txs);
+      if (cats.length > 0) {
+        setFormData((prev) => ({ ...prev, category_id: cats[0].id }));
       }
     } catch (err) {
       console.error("Transactions error:", err);
+      setError("Failed to load transactions");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -61,9 +43,51 @@ export default function Transactions() {
     loadFromBackend();
   }, []);
 
+  function handleInputChange(e) {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    try {
+      const payload = new FormData();
+      payload.append("date", formData.date);
+      payload.append("amount", formData.amount);
+      payload.append("type", formData.type);
+      payload.append("category_id", formData.category_id);
+      payload.append("payment_method", formData.payment_method);
+      payload.append("description", formData.description);
+
+      await addTransaction(payload);
+      await loadFromBackend();
+      setFormData({
+        date: new Date().toISOString().split("T")[0],
+        amount: "",
+        type: "income",
+        category_id: categories[0]?.id || "",
+        payment_method: "",
+        description: "",
+      });
+    } catch (err) {
+      console.error("Add transaction error:", err);
+      setError("Failed to add transaction");
+    }
+  }
+
+  async function handleDelete(id) {
+    if (!confirm("Delete this transaction?")) return;
+    try {
+      await deleteTransaction(id);
+      setTransactions((prev) => prev.filter((t) => t.id !== id));
+    } catch (err) {
+      console.error("Delete error:", err);
+      setError("Failed to delete transaction");
+    }
+  }
+
   return (
     <div>
-      {/* Header */}
       <div
         style={{
           display: "flex",
@@ -73,104 +97,143 @@ export default function Transactions() {
         }}
       >
         <img
-          src="/logo.jpg"
+          src="/logo.jpeg"
           alt="logo"
           style={{ height: "50px", borderRadius: "6px" }}
         />
         <h2 style={{ fontSize: "28px" }}>Transactions</h2>
       </div>
 
-      <div className="transactions-container">
-        {/* Add Transaction Form */}
-        <form className="tx-form">
-          <h3>Add Transaction</h3>
+      {error && <div style={{ color: "red", marginBottom: "10px" }}>{error}</div>}
 
-          <label>
-            Date
-            <input type="date" />
-          </label>
+      {loading ? (
+        <p>Loading...</p>
+      ) : (
+        <div className="transactions-container">
+          <form className="tx-form" onSubmit={handleSubmit}>
+            <h3>Add Transaction</h3>
 
-          <label>
-            Amount
-            <input type="number" step="0.01" />
-          </label>
+            <label>
+              Date
+              <input
+                type="date"
+                name="date"
+                value={formData.date}
+                onChange={handleInputChange}
+                required
+              />
+            </label>
 
-          <label>
-            Type
-            <select>
-              <option value="income">Income</option>
-              <option value="expense">Expense</option>
-            </select>
-          </label>
+            <label>
+              Amount
+              <input
+                type="number"
+                name="amount"
+                step="0.01"
+                value={formData.amount}
+                onChange={handleInputChange}
+                required
+              />
+            </label>
 
-          <label>
-            Category
-            <select>
-              {categories.map((c, i) => (
-                <option key={i}>{c}</option>
-              ))}
-            </select>
-          </label>
+            <label>
+              Type
+              <select name="type" value={formData.type} onChange={handleInputChange}>
+                <option value="income">Income</option>
+                <option value="expense">Expense</option>
+              </select>
+            </label>
 
-          <label>
-            Payment Method
-            <input type="text" placeholder="Cash, card, bank..." />
-          </label>
+            <label>
+              Category
+              <select
+                name="category_id"
+                value={formData.category_id}
+                onChange={handleInputChange}
+                required
+              >
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </label>
 
-          <label>
-            Description
-            <textarea rows="3"></textarea>
-          </label>
+            <label>
+              Payment Method
+              <input
+                type="text"
+                name="payment_method"
+                placeholder="Cash, card, bank..."
+                value={formData.payment_method}
+                onChange={handleInputChange}
+              />
+            </label>
 
-          <label>
-            Receipt Image
-            <input type="file" accept="image/*" />
-          </label>
+            <label>
+              Description
+              <textarea
+                name="description"
+                rows="3"
+                value={formData.description}
+                onChange={handleInputChange}
+              ></textarea>
+            </label>
 
-          <button type="button">Add</button>
-        </form>
+            <button type="submit">Add</button>
+          </form>
 
-        {/* Table */}
-        <div className="tx-table-container">
-          <h3>Recent Transactions</h3>
+          <div className="tx-table-container">
+            <h3>Recent Transactions</h3>
 
-          <table className="tx-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Category</th>
-                <th>Type</th>
-                <th>Amount</th>
-                <th>Receipt</th>
-                <th></th>
-              </tr>
-            </thead>
+            {transactions.length === 0 ? (
+              <p>No transactions yet</p>
+            ) : (
+              <table className="tx-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Category</th>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Receipt</th>
+                    <th></th>
+                  </tr>
+                </thead>
 
-            <tbody>
-              {transactions.map((t) => (
-                <tr key={t.id}>
-                  <td>{t.date}</td>
-                  <td>{t.category}</td>
-                  <td
-                    className={t.type === "income" ? "tx-income" : "tx-expense"}
-                  >
-                    {t.type}
-                  </td>
-                  <td
-                    className={t.type === "income" ? "tx-income" : "tx-expense"}
-                  >
-                    NPR {t.amount}
-                  </td>
-                  <td>{t.receipt ? <button>View</button> : "—"}</td>
-                  <td>
-                    <button className="tx-delete-button">Delete</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                <tbody>
+                  {transactions.map((t) => (
+                    <tr key={t.id}>
+                      <td>{t.date}</td>
+                      <td>{t.category}</td>
+                      <td
+                        className={t.type === "income" ? "tx-income" : "tx-expense"}
+                      >
+                        {t.type}
+                      </td>
+                      <td
+                        className={t.type === "income" ? "tx-income" : "tx-expense"}
+                      >
+                        NPR {t.amount}
+                      </td>
+                      <td>{t.receipt_image ? <button>View</button> : "—"}</td>
+                      <td>
+                        <button
+                          className="tx-delete-button"
+                          onClick={() => handleDelete(t.id)}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
