@@ -78,6 +78,53 @@ export async function getCategories(req, res) {
 }
 
 // ------------------------------------
+// Get category by ID
+// ------------------------------------
+export async function getCategoryById(req, res) {
+  try {
+    const { id } = req.params;
+    const result = await pool.query(
+      `SELECT * FROM categories WHERE id = $1`,
+      [id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Category not found" });
+    }
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+// ------------------------------------
+// Create category (admin only)
+// ------------------------------------
+export async function createCategory(req, res) {
+  try {
+    const { name, type } = req.body;
+
+    if (!name || !type) {
+      return res.status(400).json({ error: "Name and type are required" });
+    }
+
+    if (!['income', 'expense'].includes(type)) {
+      return res.status(400).json({ error: "Type must be 'income' or 'expense'" });
+    }
+
+    const result = await pool.query(
+      `INSERT INTO categories (name, type) VALUES ($1, $2) RETURNING *`,
+      [name, type]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    if (err.code === '23505') {
+      return res.status(400).json({ error: "Category already exists" });
+    }
+    res.status(500).json({ error: err.message });
+  }
+}
+
+// ------------------------------------
 // Summary for dashboard
 // ------------------------------------
 export async function getSummary(req, res) {
