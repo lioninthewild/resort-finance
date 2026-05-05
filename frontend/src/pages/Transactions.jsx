@@ -10,7 +10,10 @@ export default function Transactions() {
   const [transactions, setTransactions] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+  const [formErrors, setFormErrors] = useState({});
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split("T")[0],
     amount: "",
@@ -43,21 +46,75 @@ export default function Transactions() {
     loadFromBackend();
   }, []);
 
+  function validateField(name, value) {
+    const today = new Date().toISOString().split("T")[0];
+    
+    switch (name) {
+      case "amount":
+        if (!value) return "Amount is required";
+        if (parseFloat(value) <= 0) return "Amount must be greater than 0";
+        return null;
+      case "date":
+        if (!value) return "Date is required";
+        if (value > today) return "Date cannot be in the future";
+        return null;
+      case "category_id":
+        if (!value) return "Please select a category";
+        return null;
+      default:
+        return null;
+    }
+  }
+
   function handleInputChange(e) {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    
+    // Clear success message on input change
+    if (success) setSuccess(null);
+    
+    // Validate single field on change
+    const error = validateField(name, value);
+    setFormErrors((prev) => ({ ...prev, [name]: error }));
+  }
+
+  function validateForm() {
+    const errors = {};
+    const today = new Date().toISOString().split("T")[0];
+    
+    if (!formData.date) errors.date = "Date is required";
+    else if (formData.date > today) errors.date = "Date cannot be in the future";
+    
+    if (!formData.amount) errors.amount = "Amount is required";
+    else if (parseFloat(formData.amount) <= 0) errors.amount = "Amount must be greater than 0";
+    
+    if (!formData.category_id) errors.category_id = "Please select a category";
+    
+    return errors;
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
+    
+    // Validate all fields
+    const errors = validateForm();
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+    
+    setSubmitting(true);
+    setError(null);
+    setSuccess(null);
+    
     try {
       const payload = new FormData();
       payload.append("date", formData.date);
       payload.append("amount", formData.amount);
       payload.append("type", formData.type);
       payload.append("category_id", formData.category_id);
-      payload.append("payment_method", formData.payment_method);
-      payload.append("description", formData.description);
+      if (formData.payment_method) payload.append("payment_method", formData.payment_method);
+      if (formData.description) payload.append("description", formData.description);
 
       await addTransaction(payload);
       await loadFromBackend();
@@ -69,9 +126,13 @@ export default function Transactions() {
         payment_method: "",
         description: "",
       });
+      setFormErrors({});
+      setSuccess("Transaction added successfully!");
     } catch (err) {
       console.error("Add transaction error:", err);
-      setError("Failed to add transaction");
+      setError(err.response?.data?.error || "Failed to add transaction");
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -104,10 +165,20 @@ export default function Transactions() {
         <h2 style={{ fontSize: "28px" }}>Transactions</h2>
       </div>
 
-      {error && <div style={{ color: "red", marginBottom: "10px" }}>{error}</div>}
+      {error && (
+        <div className="error-message" onClick={() => setError(null)}>
+          {error}
+        </div>
+      )}
+
+      {success && (
+        <div className="success-message" onClick={() => setSuccess(null)}>
+          {success}
+        </div>
+      )}
 
       {loading ? (
-        <p>Loading...</p>
+        <div className="loading-spinner">Loading...</div>
       ) : (
         <div className="transactions-container">
           <form className="tx-form" onSubmit={handleSubmit}>
@@ -120,8 +191,9 @@ export default function Transactions() {
                 name="date"
                 value={formData.date}
                 onChange={handleInputChange}
-                required
+                max={new Date().toISOString().split("T")[0]}
               />
+              {formErrors.date && <span className="field-error">{formErrors.date}</span>}
             </label>
 
             <label>
@@ -130,10 +202,12 @@ export default function Transactions() {
                 type="number"
                 name="amount"
                 step="0.01"
+                min="0.01"
                 value={formData.amount}
                 onChange={handleInputChange}
-                required
+                placeholder="0.00"
               />
+              {formErrors.amount && <span className="field-error">{formErrors.amount}</span>}
             </label>
 
             <label>
@@ -150,7 +224,6 @@ export default function Transactions() {
                 name="category_id"
                 value={formData.category_id}
                 onChange={handleInputChange}
-                required
               >
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -158,6 +231,7 @@ export default function Transactions() {
                   </option>
                 ))}
               </select>
+              {formErrors.category_id && <span className="field-error">{formErrors.category_id}</span>}
             </label>
 
             <label>
@@ -181,14 +255,16 @@ export default function Transactions() {
               ></textarea>
             </label>
 
-            <button type="submit">Add</button>
+            <button type="submit" disabled={submitting}>
+              {submitting ? "Adding..." : "Add Transaction"}
+            </button>
           </form>
 
           <div className="tx-table-container">
             <h3>Recent Transactions</h3>
 
             {transactions.length === 0 ? (
-              <p>No transactions yet</p>
+              <p className="empty-state">No transactions yet</p>
             ) : (
               <table className="tx-table">
                 <thead>
@@ -215,7 +291,7 @@ export default function Transactions() {
                       <td
                         className={t.type === "income" ? "tx-income" : "tx-expense"}
                       >
-                        NPR {t.amount}
+                        NPR {parseFloat(t.amount).toLocaleString()}
                       </td>
                       <td>{t.receipt_image ? <button>View</button> : "—"}</td>
                       <td>

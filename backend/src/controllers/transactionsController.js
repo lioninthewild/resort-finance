@@ -25,6 +25,38 @@ export async function addTransaction(req, res) {
   try {
     const { date, amount, type, category_id, payment_method, description } =
       req.body;
+
+    // Validate required fields
+    if (!date || !amount || !type || !category_id) {
+      return res.status(400).json({ error: "All required fields must be filled" });
+    }
+
+    // Validate amount is positive number
+    const parsedAmount = parseFloat(amount);
+    if (isNaN(parsedAmount) || parsedAmount <= 0) {
+      return res.status(400).json({ error: "Amount must be a positive number" });
+    }
+
+    // Validate type
+    if (!['income', 'expense'].includes(type)) {
+      return res.status(400).json({ error: "Type must be income or expense" });
+    }
+
+    // Validate category exists
+    const categoryResult = await pool.query(
+      "SELECT id FROM categories WHERE id = $1",
+      [category_id]
+    );
+    if (categoryResult.rows.length === 0) {
+      return res.status(400).json({ error: "Invalid category selected" });
+    }
+
+    // Validate date is not in the future
+    const today = new Date().toISOString().split("T")[0];
+    if (date > today) {
+      return res.status(400).json({ error: "Date cannot be in the future" });
+    }
+
     const receiptImage = req.file ? req.file.filename : null;
 
     const result = await pool.query(
@@ -33,16 +65,16 @@ export async function addTransaction(req, res) {
        RETURNING *`,
       [
         date,
-        amount,
+        parsedAmount,
         type,
         category_id,
-        payment_method,
-        description,
+        payment_method?.trim() || null,
+        description?.trim() || null,
         receiptImage,
       ]
     );
 
-    res.json(result.rows[0]);
+    res.status(201).json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

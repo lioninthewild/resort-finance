@@ -223,3 +223,35 @@ body {
   color: #d62728;
   font-weight: bold;
 }
+
+/* Success message */
+.success-message {
+  text-align: center;
+  padding: 15px 20px;
+  background: #efe;
+  color: #060;
+  border-radius: 8px;
+  margin: 20px 0;
+  cursor: pointer;
+  border: 1px solid #afa;
+}
+
+/* Field-level validation errors */
+.field-error {
+  display: block;
+  color: #d62728;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* Form input error state */
+.tx-form input.error,
+.tx-form select.error {
+  border-color: #d62728;
+}
+
+/* Button disabled state */
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
