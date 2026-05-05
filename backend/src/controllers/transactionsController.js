@@ -156,3 +156,86 @@ export async function getSummary(req, res) {
     res.status(500).json({ error: err.message });
   }
 }
+
+// ------------------------------------
+// Monthly summary (income vs expense by month)
+// ------------------------------------
+export async function getMonthlySummary(req, res) {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        TO_CHAR(date, 'YYYY-MM') AS month,
+        SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) AS income,
+        SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) AS expense
+      FROM transactions
+      GROUP BY TO_CHAR(date, 'YYYY-MM')
+      ORDER BY month
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+// ------------------------------------
+// Summary by date range
+// ------------------------------------
+export async function getSummaryByDateRange(req, res) {
+  try {
+    const { start_date, end_date } = req.query;
+
+    if (!start_date || !end_date) {
+      return res.status(400).json({ error: "start_date and end_date are required" });
+    }
+
+    const totals = await pool.query(`
+      SELECT
+        SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) AS total_income,
+        SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) AS total_expense
+      FROM transactions
+      WHERE date BETWEEN $1 AND $2
+    `, [start_date, end_date]);
+
+    res.json({
+      startDate: start_date,
+      endDate: end_date,
+      totalIncome: totals.rows[0].total_income || 0,
+      totalExpense: totals.rows[0].total_expense || 0,
+      net: (totals.rows[0].total_income || 0) - (totals.rows[0].total_expense || 0),
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+// ------------------------------------
+// Category breakdown (separate income and expense)
+// ------------------------------------
+export async function getCategoryBreakdown(req, res) {
+  try {
+    const incomeCategories = await pool.query(`
+      SELECT c.name, SUM(t.amount) AS total
+      FROM transactions t
+      JOIN categories c ON t.category_id = c.id
+      WHERE t.type = 'income'
+      GROUP BY c.name
+      ORDER BY total DESC
+    `);
+
+    const expenseCategories = await pool.query(`
+      SELECT c.name, SUM(t.amount) AS total
+      FROM transactions t
+      JOIN categories c ON t.category_id = c.id
+      WHERE t.type = 'expense'
+      GROUP BY c.name
+      ORDER BY total DESC
+    `);
+
+    res.json({
+      income: incomeCategories.rows,
+      expense: expenseCategories.rows,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
