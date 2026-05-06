@@ -49,7 +49,10 @@ export default function Dashboard() {
           <img src="/logo.jpeg" alt="logo" style={{ height: "50px", borderRadius: "6px" }} />
           <h2 style={{ fontSize: "28px" }}>Dashboard</h2>
         </div>
-        <div className="loading-spinner">Loading dashboard...</div>
+        <div className="loading-spinner">
+          <div className="spinner"></div>
+          <p>Loading dashboard...</p>
+        </div>
       </div>
     );
   }

@@ -178,7 +178,10 @@ export default function Transactions() {
       )}
 
       {loading ? (
-        <div className="loading-spinner">Loading...</div>
+        <div className="loading-spinner">
+          <div className="spinner"></div>
+          <p>Loading...</p>
+        </div>
       ) : (
         <div className="transactions-container">
           <form className="tx-form" onSubmit={handleSubmit}>
