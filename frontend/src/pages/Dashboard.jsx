@@ -45,10 +45,7 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
-          <img src="/logo.jpeg" alt="logo" style={{ height: "50px", borderRadius: "6px" }} />
-          <h2 style={{ fontSize: "28px" }}>Dashboard</h2>
-        </div>
+        <h2 style={{ fontSize: "28px", marginBottom: "20px" }}>Dashboard</h2>
         <div className="loading-spinner">
           <div className="spinner"></div>
           <p>Loading dashboard...</p>
@@ -60,10 +57,7 @@ export default function Dashboard() {
   if (error) {
     return (
       <div>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
-          <img src="/logo.jpeg" alt="logo" style={{ height: "50px", borderRadius: "6px" }} />
-          <h2 style={{ fontSize: "28px" }}>Dashboard</h2>
-        </div>
+        <h2 style={{ fontSize: "28px", marginBottom: "20px" }}>Dashboard</h2>
         <div className="error-message">{error}</div>
       </div>
     );
@@ -71,10 +65,7 @@ export default function Dashboard() {
 
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
-        <img src="/logo.jpeg" alt="logo" style={{ height: "50px", borderRadius: "6px" }} />
-        <h2 style={{ fontSize: "28px" }}>Dashboard</h2>
-      </div>
+      <h2 style={{ fontSize: "28px", marginBottom: "20px" }}>Dashboard</h2>
 
       <div className="dashboard-cards">
         <div className="dashboard-card">

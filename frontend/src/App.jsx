@@ -8,10 +8,7 @@ export default function App() {
       <div>
         {/* NAVBAR */}
         <header className="navbar">
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <img src="/logo.jpeg" alt="logo" />
-            <h1>Paanighatta Resort</h1>
-          </div>
+          <h1>Paanighatta Resort</h1>
 
           <div className="nav-links">
             <Link to="/">Dashboard</Link>
