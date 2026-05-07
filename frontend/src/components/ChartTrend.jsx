@@ -1,32 +1,20 @@
 import React from "react";
-import { Line } from "react-chartjs-2";
+import { Bar } from "react-chartjs-2";
 import {
   Chart,
-  LineElement,
-  PointElement,
-  LinearScale,
+  BarElement,
   CategoryScale,
+  LinearScale,
   Tooltip,
   Legend,
 } from "chart.js";
 
-Chart.register(
-  LineElement,
-  PointElement,
-  LinearScale,
-  CategoryScale,
-  Tooltip,
-  Legend
-);
+Chart.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
-export default function ChartTrend({ data }) {
-  if (!data || data.length === 0) {
-    return <p className="empty-state">No monthly data available</p>;
-  }
-
-  const labels = data.map(d => d.month);
-  const incomeData = data.map(d => parseFloat(d.income) || 0);
-  const expenseData = data.map(d => parseFloat(d.expense) || 0);
+export default function ChartTrend({ monthData, onPrevious, onNext, canGoPrevious, canGoNext }) {
+  const labels = monthData ? [monthData.month] : [];
+  const incomeData = monthData ? [parseFloat(monthData.income) || 0] : [];
+  const expenseData = monthData ? [parseFloat(monthData.expense) || 0] : [];
 
   const chartData = {
     labels,
@@ -34,16 +22,12 @@ export default function ChartTrend({ data }) {
       {
         label: "Income",
         data: incomeData,
-        borderColor: "#2ca02c",
         backgroundColor: "#2ca02c",
-        tension: 0.3,
       },
       {
         label: "Expense",
         data: expenseData,
-        borderColor: "#d62728",
         backgroundColor: "#d62728",
-        tension: 0.3,
       },
     ],
   };
@@ -63,8 +47,32 @@ export default function ChartTrend({ data }) {
   };
 
   return (
-    <div>
-      <Line data={chartData} options={options} />
+    <div className="monthly-chart">
+      <h3>Monthly Income vs Expense</h3>
+      
+      {monthData ? (
+        <Bar data={chartData} options={options} />
+      ) : (
+        <p className="empty-state">No monthly data available</p>
+      )}
+
+      <div className="month-navigation">
+        <button 
+          onClick={onPrevious} 
+          disabled={!canGoPrevious}
+          className="nav-button"
+        >
+          ◀ Previous
+        </button>
+        <span className="current-month">{monthData?.month || ""}</span>
+        <button 
+          onClick={onNext} 
+          disabled={!canGoNext}
+          className="nav-button"
+        >
+          Next ▶
+        </button>
+      </div>
     </div>
   );
 }

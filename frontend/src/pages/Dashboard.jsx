@@ -14,6 +14,7 @@ export default function Dashboard() {
   const [categoryData, setCategoryData] = useState({ income: [], expense: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentMonthIndex, setCurrentMonthIndex] = useState(0);
 
   async function loadData() {
     try {
@@ -28,7 +29,10 @@ export default function Dashboard() {
         net: summaryRes.net || 0,
         categoryBreakdown: summaryRes.categoryBreakdown || [],
       });
-      setMonthlyData(monthlyRes || []);
+      const sortedData = monthlyRes || [];
+      setMonthlyData(sortedData);
+      // Start at most recent month (last index)
+      setCurrentMonthIndex(sortedData.length > 0 ? sortedData.length - 1 : 0);
       setCategoryData(categoryRes || { income: [], expense: [] });
     } catch (err) {
       console.error("Dashboard error:", err);
@@ -41,6 +45,20 @@ export default function Dashboard() {
   useEffect(() => {
     loadData();
   }, []);
+
+  function goToPreviousMonth() {
+    if (currentMonthIndex > 0) {
+      setCurrentMonthIndex(currentMonthIndex - 1);
+    }
+  }
+
+  function goToNextMonth() {
+    if (currentMonthIndex < monthlyData.length - 1) {
+      setCurrentMonthIndex(currentMonthIndex + 1);
+    }
+  }
+
+  const currentMonthData = monthlyData[currentMonthIndex] || null;
 
   if (loading) {
     return (
@@ -87,17 +105,17 @@ export default function Dashboard() {
       </div>
 
       <div className="dashboard-section">
-        <h3>Category Breakdown</h3>
-        <div style={{ maxWidth: "400px", marginTop: "20px" }}>
-          <ChartCategory data={categoryData} />
-        </div>
+        <ChartCategory data={categoryData} />
       </div>
 
       <div className="dashboard-section" style={{ marginTop: "20px" }}>
-        <h3>Monthly Income vs Expense</h3>
-        <div style={{ maxWidth: "600px", marginTop: "20px" }}>
-          <ChartTrend data={monthlyData} />
-        </div>
+        <ChartTrend 
+          monthData={currentMonthData}
+          onPrevious={goToPreviousMonth}
+          onNext={goToNextMonth}
+          canGoPrevious={currentMonthIndex > 0}
+          canGoNext={currentMonthIndex < monthlyData.length - 1}
+        />
       </div>
     </div>
   );

@@ -4,29 +4,28 @@ import { Chart, ArcElement, Tooltip, Legend } from "chart.js";
 
 Chart.register(ArcElement, Tooltip, Legend);
 
-const COLORS = [
-  "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
-  "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"
-];
+const INCOME_COLORS = ["#2ca02c", "#3cb371", "#4caf50", "#66bb6a", "#81c784", "#a5d6a7"];
+const EXPENSE_COLORS = ["#d62728", "#e53935", "#ef5350", "#f44336", "#e57373", "#ef9a9a"];
 
 export default function ChartCategory({ data }) {
-  if (!data || (!data.income?.length && !data.expense?.length)) {
-    return <p className="empty-state">No category data available</p>;
-  }
+  const hasIncomeData = data?.income?.length > 0;
+  const hasExpenseData = data?.expense?.length > 0;
 
-  const allCategories = [...(data.income || []), ...(data.expense || [])];
-  const labels = allCategories.map(c => c.name);
-  const values = allCategories.map(c => parseFloat(c.total) || 0);
+  const incomeChartData = hasIncomeData ? {
+    labels: data.income.map(c => c.name),
+    datasets: [{
+      data: data.income.map(c => parseFloat(c.total) || 0),
+      backgroundColor: INCOME_COLORS.slice(0, data.income.length),
+    }],
+  } : null;
 
-  const chartData = {
-    labels,
-    datasets: [
-      {
-        data: values,
-        backgroundColor: COLORS.slice(0, labels.length),
-      },
-    ],
-  };
+  const expenseChartData = hasExpenseData ? {
+    labels: data.expense.map(c => c.name),
+    datasets: [{
+      data: data.expense.map(c => parseFloat(c.total) || 0),
+      backgroundColor: EXPENSE_COLORS.slice(0, data.expense.length),
+    }],
+  } : null;
 
   const options = {
     responsive: true,
@@ -38,8 +37,23 @@ export default function ChartCategory({ data }) {
   };
 
   return (
-    <div>
-      <Doughnut data={chartData} options={options} />
+    <div className="charts-row">
+      <div className="chart-container">
+        <h3>Income Breakdown</h3>
+        {hasIncomeData ? (
+          <Doughnut data={incomeChartData} options={options} />
+        ) : (
+          <p className="empty-state">No income data</p>
+        )}
+      </div>
+      <div className="chart-container">
+        <h3>Expense Breakdown</h3>
+        {hasExpenseData ? (
+          <Doughnut data={expenseChartData} options={options} />
+        ) : (
+          <p className="empty-state">No expense data</p>
+        )}
+      </div>
     </div>
   );
 }
