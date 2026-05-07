@@ -68,7 +68,7 @@ function App() {
             <h1>Paanighatta Resort</h1>
 
             <div className="nav-links">
-              <Link to="/">Dashboard</Link>
+              <Link to="/dashboard">Dashboard</Link>
               <Link to="/transactions">Transactions</Link>
               <Link to="/notifications">Notifications</Link>
               <LogoutButton />
@@ -79,11 +79,11 @@ function App() {
         {/* CONTENT */}
         <div className="app-container">
           <Routes>
-            <Route path="/login" element={
-              isAuthenticated ? <Navigate to="/" replace /> : <Login />
+            <Route path="/" element={
+              isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
             } />
             
-            <Route path="/" element={
+            <Route path="/dashboard" element={
               <ProtectedRoute isAuthenticated={isAuthenticated}>
                 <Dashboard />
               </ProtectedRoute>
@@ -99,6 +99,10 @@ function App() {
               <ProtectedRoute isAuthenticated={isAuthenticated}>
                 <Notifications />
               </ProtectedRoute>
+            } />
+            
+            <Route path="/login" element={
+              isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
             } />
             
             <Route path="*" element={<Navigate to="/" replace />} />

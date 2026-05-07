@@ -18,8 +18,8 @@ export default function Login() {
       const data = await login(password);
       console.log("Login response:", data);
       localStorage.setItem("token", data.token);
-      console.log("Token saved, navigating to /");
-      navigate("/", { replace: true });
+      console.log("Token saved, navigating to /dashboard");
+      navigate("/dashboard", { replace: true });
     } catch (err) {
       console.error("Login error:", err);
       setError(err.response?.data?.error || "Login failed. Please try again.");
