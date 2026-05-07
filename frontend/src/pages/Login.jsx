@@ -12,13 +12,17 @@ export default function Login() {
     e.preventDefault();
     setError("");
     setLoading(true);
+    console.log("Login attempt with password:", password);
 
     try {
       const data = await login(password);
+      console.log("Login response:", data);
       localStorage.setItem("token", data.token);
-      navigate("/");
+      console.log("Token saved, navigating to /");
+      navigate("/", { replace: true });
     } catch (err) {
-      setError(err.response?.data?.error || "Invalid password");
+      console.error("Login error:", err);
+      setError(err.response?.data?.error || "Login failed. Please try again.");
     } finally {
       setLoading(false);
     }

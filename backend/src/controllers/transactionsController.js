@@ -75,11 +75,11 @@ export async function addTransaction(req, res) {
     );
 
     // Create notification
-    const categoryResult = await pool.query(
+    const categoryForNotification = await pool.query(
       "SELECT name FROM categories WHERE id = $1",
       [category_id]
     );
-    const categoryName = categoryResult.rows[0]?.name || 'Unknown';
+    const categoryName = categoryForNotification.rows[0]?.name || 'Unknown';
     
     await pool.query(
       `INSERT INTO notifications (type, message, data) VALUES ($1, $2, $3)`,

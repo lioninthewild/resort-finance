@@ -15,10 +15,15 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle 401 errors - redirect to login
+// Handle 401 errors - redirect to login (but not for login endpoint)
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
+    const url = error.config?.url || "";
+    // Don't redirect for auth endpoints (login, verify)
+    if (url.includes("/auth/")) {
+      return Promise.reject(error);
+    }
     if (error.response?.status === 401 || error.response?.status === 403) {
       localStorage.removeItem("token");
       if (window.location.pathname !== "/login") {
