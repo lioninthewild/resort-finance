@@ -74,6 +74,22 @@ export async function addTransaction(req, res) {
       ]
     );
 
+    // Create notification
+    const categoryResult = await pool.query(
+      "SELECT name FROM categories WHERE id = $1",
+      [category_id]
+    );
+    const categoryName = categoryResult.rows[0]?.name || 'Unknown';
+    
+    await pool.query(
+      `INSERT INTO notifications (type, message, data) VALUES ($1, $2, $3)`,
+      [
+        'transaction_added',
+        `New ${type}: NPR ${parsedAmount} - ${categoryName}`,
+        JSON.stringify(result.rows[0])
+      ]
+    );
+
     res.status(201).json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -87,7 +103,26 @@ export async function deleteTransaction(req, res) {
   try {
     const id = req.params.id;
 
+    // Get transaction details before deletion for notification
+    const transaction = await pool.query(
+      "SELECT * FROM transactions WHERE id = $1",
+      [id]
+    );
+
     await pool.query(`DELETE FROM transactions WHERE id = $1`, [id]);
+
+    // Create notification
+    if (transaction.rows.length > 0) {
+      const tx = transaction.rows[0];
+      await pool.query(
+        `INSERT INTO notifications (type, message, data) VALUES ($1, $2, $3)`,
+        [
+          'transaction_deleted',
+          `Transaction deleted: NPR ${tx.amount} (${tx.type})`,
+          JSON.stringify(tx)
+        ]
+      );
+    }
 
     res.json({ success: true });
   } catch (err) {
@@ -267,6 +302,38 @@ export async function getCategoryBreakdown(req, res) {
       income: incomeCategories.rows,
       expense: expenseCategories.rows,
     });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+// ------------------------------------
+// Get notifications (admin only)
+// ------------------------------------
+export async function getNotifications(req, res) {
+  try {
+    const result = await pool.query(`
+      SELECT * FROM notifications 
+      ORDER BY created_at DESC 
+      LIMIT 50
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+// ------------------------------------
+// Mark notification as read
+// ------------------------------------
+export async function markNotificationRead(req, res) {
+  try {
+    const { id } = req.params;
+    await pool.query(
+      `UPDATE notifications SET read = TRUE WHERE id = $1`,
+      [id]
+    );
+    res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

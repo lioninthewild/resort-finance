@@ -474,3 +474,148 @@ button:disabled {
     padding: 14px;
   }
 }
+
+/* ========================================
+   Login Page
+   ======================================== */
+
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+}
+
+.login-card {
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.login-card h1 {
+  font-size: 24px;
+  color: #0b5fff;
+  margin-bottom: 8px;
+}
+
+.login-card h2 {
+  font-size: 18px;
+  color: #666;
+  margin-bottom: 24px;
+  font-weight: 500;
+}
+
+.login-card form {
+  text-align: left;
+}
+
+.login-card label {
+  font-size: 14px;
+  display: block;
+  margin-bottom: 8px;
+  color: #555;
+}
+
+.login-card input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.login-card input:focus {
+  outline: none;
+  border-color: #0b5fff;
+  box-shadow: 0 0 0 3px rgba(11, 95, 255, 0.1);
+}
+
+.login-card button {
+  width: 100%;
+  padding: 14px;
+  background: #0b5fff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.login-card button:hover:not(:disabled) {
+  background: #0a4de6;
+}
+
+/* ========================================
+   Notifications
+   ======================================== */
+
+.notifications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.notification-item {
+  background: white;
+  padding: 16px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.notification-item.unread {
+  border-left: 4px solid #0b5fff;
+}
+
+.notification-item.read {
+  opacity: 0.7;
+}
+
+.notification-item:hover.unread {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.notification-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.notification-type {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: #f0f0f0;
+  color: #555;
+}
+
+.notification-type.transaction_added {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.notification-type.transaction_deleted {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.notification-date {
+  font-size: 12px;
+  color: #888;
+}
+
+.notification-message {
+  font-size: 14px;
+  color: #333;
+  margin: 0;
+}

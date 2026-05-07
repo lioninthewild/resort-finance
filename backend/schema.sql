@@ -41,3 +41,16 @@ ON CONFLICT (name) DO NOTHING;
 CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(date);
 CREATE INDEX IF NOT EXISTS idx_transactions_type ON transactions(type);
 CREATE INDEX IF NOT EXISTS idx_transactions_category ON transactions(category_id);
+
+-- Create notifications table
+CREATE TABLE IF NOT EXISTS notifications (
+    id SERIAL PRIMARY KEY,
+    type VARCHAR(50) NOT NULL,
+    message TEXT NOT NULL,
+    data JSONB,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    read BOOLEAN DEFAULT FALSE
+);
+
+-- Create index for notifications
+CREATE INDEX IF NOT EXISTS idx_notifications_created ON notifications(created_at DESC);

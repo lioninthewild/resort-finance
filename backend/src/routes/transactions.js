@@ -1,6 +1,6 @@
 import { Router } from "express";
 import upload from "../config/multer.js";
-import { requireOwner } from "../middleware/auth.js";
+import { authenticateToken } from "../middleware/authMiddleware.js";
 
 import {
   getTransactions,
@@ -13,21 +13,26 @@ import {
   getMonthlySummary,
   getSummaryByDateRange,
   getCategoryBreakdown,
+  getNotifications,
+  markNotificationRead,
 } from "../controllers/transactionsController.js";
 
 const router = Router();
 
-// endpoints
-router.get("/transactions", getTransactions);
-router.get("/categories", getCategories);
-router.get("/categories/:id", getCategoryById);
-router.get("/summary", getSummary);
-router.get("/summary/monthly", getMonthlySummary);
-router.get("/summary/date-range", getSummaryByDateRange);
-router.get("/summary/by-category", getCategoryBreakdown);
+// Admin-only endpoints (require authentication)
+router.get("/transactions", authenticateToken, getTransactions);
+router.get("/categories", authenticateToken, getCategories);
+router.get("/categories/:id", authenticateToken, getCategoryById);
+router.get("/summary", authenticateToken, getSummary);
+router.get("/summary/monthly", authenticateToken, getMonthlySummary);
+router.get("/summary/date-range", authenticateToken, getSummaryByDateRange);
+router.get("/summary/by-category", authenticateToken, getCategoryBreakdown);
+router.get("/notifications", authenticateToken, getNotifications);
+router.post("/categories", authenticateToken, createCategory);
 
+// Public endpoints (no auth, but notify admin)
 router.post("/transactions", upload.single("receipt"), addTransaction);
-router.post("/categories", requireOwner, createCategory);
 router.delete("/transactions/:id", deleteTransaction);
+router.patch("/notifications/:id/read", authenticateToken, markNotificationRead);
 
 export default router;
