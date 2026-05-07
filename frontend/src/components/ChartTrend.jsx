@@ -44,8 +44,8 @@ export default function ChartTrend({ monthData, onPrevious, onNext, canGoPreviou
         beginAtZero: true,
       },
       x: {
-        barThickness: 60,
-        categoryPercentage: 0.7,
+        barThickness: 35,
+        categoryPercentage: 0.6,
         barPercentage: 0.8,
       },
     },

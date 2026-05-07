@@ -4,8 +4,8 @@ import { Chart, ArcElement, Tooltip, Legend } from "chart.js";
 
 Chart.register(ArcElement, Tooltip, Legend);
 
-const INCOME_COLORS = ["#6366f1", "#8b5cf6", "#ec4899", "#14b8a6", "#f59e0b", "#10b981", "#06b6d4", "#f97316"];
-const EXPENSE_COLORS = ["#ef4444", "#f97316", "#eab308", "#84cc16", "#06b6d4", "#a855f7", "#ec4899", "#14b8a6"];
+const INCOME_COLORS = ["#3b82f6", "#8b5cf6", "#ec4899", "#14b8a6", "#f59e0b", "#10b981", "#6366f1", "#ef4444"];
+const EXPENSE_COLORS = ["#f97316", "#eab308", "#84cc16", "#22c55e", "#06b6d4", "#a855f7", "#f43f5e", "#0ea5e9"];
 
 export default function ChartCategory({ data }) {
   const hasIncomeData = data?.income?.length > 0;
