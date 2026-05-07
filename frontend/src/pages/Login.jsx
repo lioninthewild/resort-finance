@@ -12,14 +12,21 @@ export default function Login() {
     e.preventDefault();
     setError("");
     setLoading(true);
-    console.log("Login attempt with password:", password);
 
     try {
+      console.log("Attempting login with password:", password);
       const data = await login(password);
-      console.log("Login response:", data);
-      localStorage.setItem("token", data.token);
-      console.log("Token saved, navigating to /dashboard");
-      navigate("/dashboard", { replace: true });
+      console.log("Login response received:", data);
+      
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+        console.log("Token saved to localStorage");
+        
+        // Use window.location for a full redirect to ensure it works
+        window.location.href = "/dashboard";
+      } else {
+        setError("Login failed: No token received");
+      }
     } catch (err) {
       console.error("Login error:", err);
       setError(err.response?.data?.error || "Login failed. Please try again.");

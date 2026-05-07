@@ -6,10 +6,23 @@ import Login from "./pages/Login";
 import Notifications from "./pages/Notifications";
 import { verifyToken } from "./api/auth";
 
-function ProtectedRoute({ children, isAuthenticated }) {
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+function ProtectedRoute({ children, isAuthenticated, isChecking }) {
+  // While checking auth, show loading
+  if (isChecking) {
+    return (
+      <div className="loading-spinner">
+        <div className="spinner"></div>
+        <p>Checking authentication...</p>
+      </div>
+    );
   }
+  
+  // If not authenticated, redirect to login
+  if (!isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+  
+  // Authenticated, show the protected content
   return children;
 }
 
@@ -18,52 +31,47 @@ function LogoutButton() {
   
   function handleLogout() {
     localStorage.removeItem("token");
-    navigate("/login");
+    navigate("/", { replace: true });
   }
   
   return (
-    <button onClick={handleLogout} style={{ background: 'transparent', border: 'none' }}>
+    <button onClick={handleLogout} style={{ background: 'transparent', border: 'none', color: 'white' }}>
       Logout
     </button>
   );
 }
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(null);
-  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
     async function checkAuth() {
       const token = localStorage.getItem("token");
-      if (token) {
-        try {
-          const result = await verifyToken();
-          setIsAuthenticated(result.valid);
-        } catch (err) {
-          setIsAuthenticated(false);
-        }
-      } else {
+      if (!token) {
+        setIsAuthenticated(false);
+        setIsChecking(false);
+        return;
+      }
+      
+      try {
+        const result = await verifyToken();
+        setIsAuthenticated(result.valid === true);
+      } catch (err) {
+        console.error("Auth check failed:", err);
         setIsAuthenticated(false);
       }
-      setCheckingAuth(false);
+      setIsChecking(false);
     }
     
     checkAuth();
   }, []);
 
-  if (checkingAuth) {
-    return (
-      <div className="loading-spinner">
-        <div className="spinner"></div>
-      </div>
-    );
-  }
-
   return (
     <BrowserRouter>
       <div>
         {/* Show navbar only if authenticated */}
-        {isAuthenticated && (
+        {isAuthenticated && !isChecking && (
           <header className="navbar">
             <h1>Paanighatta Resort</h1>
 
@@ -79,38 +87,46 @@ function App() {
         {/* CONTENT */}
         <div className="app-container">
           <Routes>
+            {/* Root path - show login if not authenticated */}
             <Route path="/" element={
-              isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
+              isChecking 
+                ? <div className="loading-spinner"><div className="spinner"></div></div>
+                : isAuthenticated 
+                  ? <Navigate to="/dashboard" replace /> 
+                  : <Login />
             } />
             
+            {/* Protected routes */}
             <Route path="/dashboard" element={
-              <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <ProtectedRoute isAuthenticated={isAuthenticated} isChecking={isChecking}>
                 <Dashboard />
               </ProtectedRoute>
             } />
             
             <Route path="/transactions" element={
-              <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <ProtectedRoute isAuthenticated={isAuthenticated} isChecking={isChecking}>
                 <Transactions />
               </ProtectedRoute>
             } />
             
             <Route path="/notifications" element={
-              <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <ProtectedRoute isAuthenticated={isAuthenticated} isChecking={isChecking}>
                 <Notifications />
               </ProtectedRoute>
             } />
             
+            {/* Login page redirect if already authenticated */}
             <Route path="/login" element={
-              isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
+              isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/" replace />
             } />
             
+            {/* Catch all - redirect to root */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
 
         {/* FOOTER */}
-        {isAuthenticated && (
+        {isAuthenticated && !isChecking && (
           <footer className="footer">Currency: NPR</footer>
         )}
       </div>
