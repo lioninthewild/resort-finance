@@ -4,6 +4,8 @@ import Dashboard from "./pages/Dashboard";
 import Transactions from "./pages/Transactions";
 import Login from "./pages/Login";
 import Notifications from "./pages/Notifications";
+import Bill from "./pages/Bill";
+import Statement from "./pages/Statement";
 import { verifyToken } from "./api/auth";
 
 function ProtectedRoute({ children, isAuthenticated, isChecking }) {
@@ -78,6 +80,7 @@ function App() {
             <div className="nav-links">
               <Link to="/dashboard">Dashboard</Link>
               <Link to="/transactions">Transactions</Link>
+              <Link to="/statement">Statement</Link>
               <Link to="/notifications">Notifications</Link>
               <LogoutButton />
             </div>
@@ -112,6 +115,18 @@ function App() {
             <Route path="/notifications" element={
               <ProtectedRoute isAuthenticated={isAuthenticated} isChecking={isChecking}>
                 <Notifications />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/bill/:id" element={
+              <ProtectedRoute isAuthenticated={isAuthenticated} isChecking={isChecking}>
+                <Bill />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/statement" element={
+              <ProtectedRoute isAuthenticated={isAuthenticated} isChecking={isChecking}>
+                <Statement />
               </ProtectedRoute>
             } />
             

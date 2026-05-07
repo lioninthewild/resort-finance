@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   getCategories,
   getTransactions,
@@ -282,7 +283,11 @@ export default function Transactions() {
                       >
                         NPR {parseFloat(t.amount).toLocaleString()}
                       </td>
-                      <td>{t.receipt_image ? <button>View</button> : "—"}</td>
+                      <td>
+                        <Link to={`/bill/${t.id}`} className="view-bill-link">
+                          View Bill
+                        </Link>
+                      </td>
                       <td>
                         <button
                           className="tx-delete-button"

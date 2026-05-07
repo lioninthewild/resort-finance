@@ -697,3 +697,20 @@ button:disabled {
   color: #333;
   margin: 0;
 }
+
+/* View Bill Link */
+.view-bill-link {
+  padding: 6px 12px;
+  background: #f0f7ff;
+  color: #0b5fff;
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  display: inline-block;
+  transition: background 0.2s ease;
+}
+
+.view-bill-link:hover {
+  background: #e0efff;
+}
